@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>數位展示應用－AR名片互動</title>
+  <!-- A-Frame + MindAR -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <!-- CSS 設定 -->
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    .scene {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+    /* 顯示植物名稱 */
+    #custom-text {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 0.5em 1em;
+      font-size: 1.2em;
+      border-radius: 0.3em;
+      z-index: 9999;
+    }
+    /* 題目區塊 */
+    #quiz {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 1em;
+      border-radius: 0.5em;
+      z-index: 9999;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      font-size: 1.1em;
+      text-align: center;
+    }
+    #quiz button {
+      margin: 0.5em;
+      padding: 0.5em 1em;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <!-- 植物名稱 -->
+  <div id="custom-text">台灣二葉松（學名：Pinus taiwanensis）</div>
+
+  <!-- 題目區塊 -->
+  <div id="quiz">
+    <p>台灣二葉松是常綠植物？</p>
+    <button onclick="answer(true)">是</button>
+    <button onclick="answer(false)">否</button>
+  </div>
+
+  <!-- 音效 -->
+  <audio id="correctSound" src="correct.mp3"></audio>
+  <audio id="wrongSound" src="wrong.mp3"></audio>
+
+  <!-- AR 場景 -->
+  <a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: true; uiLoading: true; uiError: true; uiScanning: true"
+           color-space="sRGB"
+           renderer="colorManagement: true, physicallyCorrectLights: true"
+           vr-mode-ui="enabled: false"
+           device-orientation-permission-ui="enabled: false"
+           class="scene">
+
+    <!-- 資源載入 -->
+    <a-assets>
+      <img id="resultImg" src="card1.jpg" />
+    </a-assets>
+
+    <!-- 燈光與攝影機 -->
+    <a-light type="ambient" intensity="3"></a-light>
+    <a-camera look-controls="enabled: false"></a-camera>
+
+    <!-- 圖像識別後顯示的圖像 -->
+    <a-entity id="target" mindar-image-target="targetIndex: 0">
+      <a-plane src="#resultImg" width="1.2" height="0.7" position="0 0 0"></a-plane>
+    </a-entity>
+  </a-scene>
+
+  <!-- JavaScript 控制邏輯 -->
+  <script>
+    window.addEventListener("load", () => {
+      const target = document.querySelector("#target");
+      const customDiv = document.querySelector("#custom-text");
+      const quizDiv = document.querySelector("#quiz");
+
+      target.addEventListener("targetFound", () => {
+        customDiv.style.display = "block";
+        quizDiv.style.display = "none"; // 顯示名片時不顯示題目
+      });
+
+      target.addEventListener("targetLost", () => {
+        customDiv.style.display = "none";
+        quizDiv.style.display = "block"; // 名片關掉後出現題目
+      });
+    });
+
+    function answer(isYes) {
+      const correct = true; // 正確答案是「是」
+      const correctSound = document.getElementById("correctSound");
+      const wrongSound = document.getElementById("wrongSound");
+
+      if (isYes === correct) {
+        correctSound.play();
+        alert("答對了！");
+      } else {
+        wrongSound.play();
+        alert("答錯了！");
+      }
+
+      // 題目關閉
+      document.querySelector("#quiz").style.display = "none";
+    }
+  </script>
+</body>
+</html>
